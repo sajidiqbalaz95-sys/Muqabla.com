@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ur">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Muqabla - Vote karo, winner chuno</title>
+<!--SEO-->
+<meta name="description" content="Do log, ek muqabla. Photo dekho, vote do, 24 ghante baad winner ka elan. Koi account nahi chahiye.">
+<meta name="theme-color" content="#0f0b1e">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta property="og:site_name" content="Muqabla">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Muqabla - Vote karo, winner chuno">
+<meta property="og:description" content="Do log, ek muqabla. Photo dekho, vote do, 24 ghante baad winner ka elan. Koi account nahi chahiye.">
+<meta property="og:image" content="https://muqabla-vote.pages.dev/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<!--/SEO-->
+<style>
+  :root{
+    --bg:#0f0b1e; --card:#1a1433; --text:#f5f3ff; --muted:#a49ec7;
+    --a:#ff4d6d; --b:#3a86ff; --gold:#ffd166;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:radial-gradient(circle at 20% 0%,#2a1856 0,var(--bg) 55%) fixed;color:var(--text);min-height:100vh}
+  .wrap{max-width:960px;margin:0 auto;padding:0 16px 48px}
+  header{display:flex;justify-content:space-between;align-items:center;padding:18px 0}
+  .logo{font-size:1.5rem;font-weight:800;letter-spacing:.5px}
+  .logo span{color:var(--gold)}
+  .btn{border:0;cursor:pointer;font-weight:700;border-radius:999px;padding:12px 22px;font-size:1rem;color:#fff;background:linear-gradient(90deg,var(--a),var(--b));transition:transform .15s}
+  .btn:hover{transform:translateY(-2px)}
+  .hero{text-align:center;padding:28px 0 8px}
+  .hero h1{font-size:clamp(1.8rem,6vw,3rem);line-height:1.2}
+  .hero p{color:var(--muted);margin:12px auto 20px;max-width:520px}
+  .timer{display:inline-block;background:var(--card);border:1px solid #2e2557;border-radius:14px;padding:10px 18px;margin:14px 0}
+  .timer b{color:var(--gold);font-size:1.3rem;font-variant-numeric:tabular-nums}
+  .arena{display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:center;margin-top:18px}
+  .cand{background:var(--card);border-radius:22px;padding:14px;text-align:center;border:2px solid transparent;transition:.2s}
+  .cand.a{border-color:rgba(255,77,109,.4)} .cand.b{border-color:rgba(58,134,255,.4)}
+  .photo{width:100%;aspect-ratio:1/1;border-radius:16px;object-fit:cover;background:#2a2150;display:grid;place-items:center;font-size:3rem}
+  .cand h3{margin:12px 0 4px;font-size:1.2rem}
+  .votes{color:var(--muted);margin-bottom:10px}
+  .vote-btn{width:100%}
+  .cand.a .vote-btn{background:var(--a)} .cand.b .vote-btn{background:var(--b)}
+  .vs{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;font-weight:900;background:var(--gold);color:#222;box-shadow:0 0 24px rgba(255,209,102,.5)}
+  .bar{display:flex;height:16px;border-radius:99px;overflow:hidden;margin:22px 0 6px;background:#2a2150}
+  .bar i{display:block;transition:width .5s}
+  .bar .ba{background:var(--a)} .bar .bb{background:var(--b)}
+  .pct{display:flex;justify-content:space-between;color:var(--muted);font-size:.9rem}
+  .box{background:var(--card);border-radius:20px;padding:18px;margin-top:26px}
+  .box h2{margin-bottom:12px;font-size:1.15rem}
+  .cform{display:flex;gap:8px;flex-wrap:wrap}
+  .cform input{flex:1;min-width:120px;padding:12px;border-radius:12px;border:1px solid #2e2557;background:#120d26;color:var(--text);font-size:1rem}
+  .cm{padding:10px 0;border-bottom:1px solid #2a2150}
+  .cm b{color:var(--gold)} .cm small{color:var(--muted)}
+  .how{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+  .how div{display:flex;gap:12px;align-items:center;background:#120d26;border-radius:14px;padding:12px}
+  .how b{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--gold);color:#222}
+  footer{text-align:center;color:var(--muted);margin-top:34px;font-size:.85rem}
+  @media(max-width:640px){
+    .arena{grid-template-columns:1fr 1fr}
+    .vs{grid-column:1/3;grid-row:1;justify-self:center;margin-bottom:-6px}
+    .photo{font-size:2.2rem}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">Muq<span>abla</span></div>
+    <a class="btn" href="create.html" style="text-decoration:none;display:inline-block">+ Apna Room Banao</a>
+  </header>
+
+  <section class="hero">
+    <h1>Do log. Ek muqabla.<br>Aap ka vote, faisla!</h1>
+    <p>Koi account nahi chahiye. Photo dekho, vote do, aur 24 ghante baad winner ka elan hoga.</p>
+    <div class="timer">Voting khatam hone mein: <b id="t">23:59:59</b></div>
+  </section>
+
+  <div class="pct" style="justify-content:center;margin-top:6px"><span>Ye sirf ek misal (demo) hai. Asli muqabla apna room bana kar shuru hota hai.</span></div>
+
+  <section class="arena">
+    <div class="cand a">
+      <div class="photo">&#128100;</div>
+      <h3>Ali</h3>
+      <div class="votes"><span id="va">128</span> votes</div>
+      <button class="btn vote-btn" onclick="vote('a')">Vote Ali</button>
+    </div>
+    <div class="vs">VS</div>
+    <div class="cand b">
+      <div class="photo">&#128100;</div>
+      <h3>Ahmed</h3>
+      <div class="votes"><span id="vb">96</span> votes</div>
+      <button class="btn vote-btn" onclick="vote('b')">Vote Ahmed</button>
+    </div>
+  </section>
+
+  <div class="bar"><i class="ba" id="ba"></i><i class="bb" id="bb"></i></div>
+  <div class="pct"><span id="pa"></span><span id="pb"></span></div>
+
+  <section class="box">
+    <h2>Comments</h2>
+    <div class="cform">
+      <input id="nm" placeholder="Aap ka naam" maxlength="20">
+      <input id="tx" placeholder="Comment likhein..." maxlength="150" style="flex:3">
+      <button class="btn" onclick="addC()">Bhejo</button>
+    </div>
+    <div id="cl"></div>
+  </section>
+
+  <section class="box">
+    <h2>Kaise kaam karta hai?</h2>
+    <div class="how">
+      <div><b>1</b><span>Apna room banao: naam aur photo daalo.</span></div>
+      <div><b>2</b><span>Muqabil ko invite link bhejo, wo apni photo daalega.</span></div>
+      <div><b>3</b><span>24 ghante tak log vote karenge. Koi account nahi chahiye.</span></div>
+      <div><b>4</b><span>Winner ka elan hoga. Image download karo aur share karo.</span></div>
+    </div>
+    <p style="text-align:center;margin-top:16px"><a class="btn" href="create.html" style="text-decoration:none;display:inline-block">Abhi room banao</a></p>
+  </section>
+
+  <footer>Muqabla &copy; 2026 &middot; muqabla-vote.pages.dev</footer>
+</div>
+
+<script>
+  // Abhi ye sirf demo hai. Asli database (Supabase) Step 5 mein judega.
+  let A=128,B=96,voted=false;
+  function draw(){
+    const s=A+B,p=Math.round(A/s*100);
+    va.textContent=A; vb.textContent=B;
+    ba.style.width=p+'%'; bb.style.width=(100-p)+'%';
+    pa.textContent='Ali '+p+'%'; pb.textContent='Ahmed '+(100-p)+'%';
+  }
+  function vote(w){
+    if(voted){alert('Aap pehle hi vote de chuke hain!');return}
+    voted=true; w==='a'?A++:B++; draw();
+  }
+  function addC(){
+    const n=nm.value.trim()||'Mehman',x=tx.value.trim(); if(!x)return;
+    const d=document.createElement('div'); d.className='cm';
+    d.innerHTML='<b></b> <small>abhi</small><div></div>';
+    d.querySelector('b').textContent=n; d.querySelector('div').textContent=x;
+    cl.prepend(d); tx.value='';
+  }
+  let left=24*3600-1;
+  setInterval(()=>{ if(left>0)left--;
+    const h=String(Math.floor(left/3600)).padStart(2,'0'),
+          m=String(Math.floor(left%3600/60)).padStart(2,'0'),
+          s=String(left%60).padStart(2,'0');
+    t.textContent=h+':'+m+':'+s;},1000);
+  draw();
+</script>
+</body>
+</html>
