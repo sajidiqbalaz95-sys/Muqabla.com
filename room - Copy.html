@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="ur">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Muqabla - Vote karo</title>
+<!--SEO-->
+<meta name="description" content="Is muqabale mein vote do aur winner chuno. Koi account nahi chahiye.">
+<meta name="theme-color" content="#0f0b1e">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta property="og:site_name" content="Muqabla">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Muqabla - Vote karo">
+<meta property="og:description" content="Is muqabale mein vote do aur winner chuno. Koi account nahi chahiye.">
+<meta property="og:image" content="https://muqabla-vote.pages.dev/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<!--/SEO-->
+<style>
+  :root{--bg:#0f0b1e;--card:#1a1433;--text:#f5f3ff;--muted:#a49ec7;--a:#ff4d6d;--b:#3a86ff;--gold:#ffd166}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:radial-gradient(circle at 20% 0%,#2a1856 0,var(--bg) 55%) fixed;color:var(--text);min-height:100vh}
+  .wrap{max-width:960px;margin:0 auto;padding:0 16px 48px}
+  header{display:flex;justify-content:space-between;align-items:center;padding:18px 0}
+  a.logo{font-size:1.5rem;font-weight:800;color:var(--text);text-decoration:none}
+  .logo span{color:var(--gold)}
+  .btn{border:0;cursor:pointer;font-weight:700;border-radius:999px;padding:12px 22px;font-size:1rem;color:#fff;background:linear-gradient(90deg,var(--a),var(--b));text-decoration:none;display:inline-block}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .hero{text-align:center;padding:10px 0}
+  .hero h1{font-size:clamp(1.5rem,5vw,2.4rem)}
+  .timer{display:inline-block;background:var(--card);border:1px solid #2e2557;border-radius:14px;padding:10px 18px;margin:14px 0}
+  .timer b{color:var(--gold);font-size:1.3rem;font-variant-numeric:tabular-nums}
+  .arena{display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:center;margin-top:10px}
+  .cand{background:var(--card);border-radius:22px;padding:14px;text-align:center;border:2px solid transparent;position:relative}
+  .cand.a{border-color:rgba(255,77,109,.4)} .cand.b{border-color:rgba(58,134,255,.4)}
+  .cand.win{border-color:var(--gold);box-shadow:0 0 30px rgba(255,209,102,.35)}
+  .photo{width:100%;aspect-ratio:1/1;border-radius:16px;object-fit:cover;background:#2a2150;display:grid;place-items:center;font-size:3rem}
+  .cand h3{margin:12px 0 4px;font-size:1.2rem}
+  .votes{color:var(--muted);margin-bottom:10px}
+  .vote-btn{width:100%}
+  .cand.a .vote-btn{background:var(--a)} .cand.b .vote-btn{background:var(--b)}
+  .crown{position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:var(--gold);color:#222;font-weight:800;border-radius:99px;padding:4px 14px;font-size:.85rem}
+  .vs{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;font-weight:900;background:var(--gold);color:#222;box-shadow:0 0 24px rgba(255,209,102,.5)}
+  .bar{display:flex;height:16px;border-radius:99px;overflow:hidden;margin:22px 0 6px;background:#2a2150}
+  .bar i{display:block;transition:width .5s}
+  .bar .ba{background:var(--a)} .bar .bb{background:var(--b)}
+  .pct{display:flex;justify-content:space-between;color:var(--muted);font-size:.9rem}
+  .msg{text-align:center;color:var(--muted);margin-top:14px;min-height:1.3em}
+  .box{background:var(--card);border-radius:20px;padding:18px;margin-top:26px}
+  .box h2{margin-bottom:12px;font-size:1.15rem}
+  .cform{display:flex;gap:8px;flex-wrap:wrap}
+  .cform input{flex:1;min-width:120px;padding:12px;border-radius:12px;border:1px solid #2e2557;background:#120d26;color:var(--text);font-size:1rem}
+  .cm{padding:10px 0;border-bottom:1px solid #2a2150;word-break:break-word}
+  .cm b{color:var(--gold)} .cm small{color:var(--muted)}
+  .hide{display:none}
+  .stat{width:100%;border-collapse:collapse;margin:10px 0 16px}
+  .stat th,.stat td{padding:10px 6px;text-align:center;border-bottom:1px solid #2a2150}
+  .stat th{color:var(--muted);font-weight:600;font-size:.9rem}
+  .stat td:first-child,.stat th:first-child{text-align:left}
+  .res-btns{display:flex;gap:10px;flex-wrap:wrap}
+  .res-btns .btn{flex:1;min-width:150px;text-align:center}
+  .btn.alt{background:#2a2150}
+  .link{background:#120d26;border:1px solid #2e2557;border-radius:12px;padding:12px;margin:8px 0;word-break:break-all;font-size:.9rem}
+  .plats{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin:12px 0}
+  .plats .btn{padding:12px 8px;font-size:.95rem}
+  @media(max-width:640px){
+    .arena{grid-template-columns:1fr 1fr}
+    .vs{grid-column:1/3;grid-row:1;justify-self:center;margin-bottom:-6px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a class="logo" href="index.html">Muq<span>abla</span></a>
+    <a class="btn" href="create.html">+ Apna Room</a>
+  </header>
+
+  <div id="fatal" class="msg">Muqabla load ho raha hai...</div>
+
+  <div id="main" class="hide">
+    <section class="hero">
+      <h1 id="title"></h1>
+      <div class="timer"><span id="tlabel">Voting khatam hone mein:</span> <b id="t">--:--:--</b></div>
+    </section>
+
+    <section class="arena">
+      <div class="cand a" id="ca">
+        <div class="photo"><img id="pa_img" class="photo" alt=""></div>
+        <h3 id="na"></h3>
+        <div class="votes"><span id="va">0</span> votes</div>
+        <button class="btn vote-btn" id="bva">Vote</button>
+      </div>
+      <div class="vs">VS</div>
+      <div class="cand b" id="cb">
+        <div class="photo"><img id="pb_img" class="photo" alt="" style="display:none"><span id="pb_ph">&#8987;</span></div>
+        <h3 id="nb"></h3>
+        <div class="votes"><span id="vb">0</span> votes</div>
+        <button class="btn vote-btn" id="bvb">Vote</button>
+      </div>
+    </section>
+
+    <div class="bar"><i class="ba" id="ba"></i><i class="bb" id="bb"></i></div>
+    <div class="pct"><span id="ppa"></span><span id="ppb"></span></div>
+    <div class="msg" id="msg"></div>
+
+    <section class="box hide" id="owner"></section>
+
+    <section class="box hide" id="results">
+      <h2>Natija (statistics)</h2>
+      <table class="stat">
+        <thead><tr><th>Vote kahan se aaye</th><th id="hA"></th><th id="hB"></th></tr></thead>
+        <tbody id="stats"></tbody>
+      </table>
+      <div class="res-btns">
+        <button class="btn" id="dl">Image download karo</button>
+        <button class="btn alt" id="cp">Room ka link copy karo</button>
+      </div>
+      <div class="msg" id="dlmsg"></div>
+    </section>
+
+    <section class="box">
+      <h2>Comments</h2>
+      <div class="cform">
+        <input id="cn" placeholder="Aap ka naam" maxlength="20">
+        <input id="ct" placeholder="Comment likhein..." maxlength="150" style="flex:3">
+        <button class="btn" id="cbtn">Bhejo</button>
+      </div>
+      <div id="cl"></div>
+    </section>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script>
+  const $ = id => document.getElementById(id);
+  const sb = supabase.createClient(MUQABLA.SUPABASE_URL, MUQABLA.SUPABASE_ANON_KEY);
+  const q = new URLSearchParams(location.search);
+  const rid = q.get('r');
+  const source = q.get('ref') === 'invite' ? 'invite' : 'direct';
+  let room = null, A = 0, B = 0;
+
+  // Har browser ki apni pehchan (account ke baghair)
+  function voterId(){
+    try {
+      let v = localStorage.getItem('muqabla_voter');
+      if (!v) { v = crypto.randomUUID(); localStorage.setItem('muqabla_voter', v); }
+      return v;
+    } catch { return 'anon-' + Math.random().toString(36).slice(2); }
+  }
+  const myVote = () => { try { return localStorage.getItem('muqabla_vote_' + rid + '_' + (room ? room.round : 1)); } catch { return null; } };
+  const saveVote = c => { try { localStorage.setItem('muqabla_vote_' + rid + '_' + (room ? room.round : 1), c); } catch {} };
+
+  const started = () => room && room.name_b && room.ends_at;
+  const ended   = () => started() && new Date(room.ends_at) <= new Date();
+
+  // Ginti server ke safe function se aati hai (votes ka asli data public nahi)
+  let CNT = [];
+  async function loadCounts(){
+    const r = await sb.rpc('get_counts', { p_room: rid, p_round: room.round });
+    if (!r.error) CNT = r.data || [];
+  }
+  const sum = (ch, src) => CNT
+    .filter(x => x.c_choice === ch && (!src || x.c_source === src))
+    .reduce((a, x) => a + Number(x.c_n), 0);
+
+  async function refreshVotes(){
+    await loadCounts();
+    A = sum('a'); B = sum('b');
+    $('va').textContent = A; $('vb').textContent = B;
+    const s = A + B, p = s ? Math.round(A / s * 100) : 50;
+    $('ba').style.width = p + '%'; $('bb').style.width = (100 - p) + '%';
+    $('ppa').textContent = room.name_a + ' ' + (s ? p : 0) + '%';
+    $('ppb').textContent = (room.name_b || '') + ' ' + (s ? 100 - p : 0) + '%';
+    ownerPanel();
+    showState();
+  }
+
+  function showState(){
+    const mine = myVote(), live = started() && !ended();
+    $('bva').disabled = $('bvb').disabled = !live || !!mine;
+    $('bva').textContent = 'Vote ' + room.name_a;
+    $('bvb').textContent = room.name_b ? 'Vote ' + room.name_b : 'Intezar...';
+    $('ca').classList.remove('win'); $('cb').classList.remove('win');
+    document.querySelectorAll('.crown').forEach(e => e.remove());
+
+    if (!room.name_b) { $('msg').textContent = 'Muqabil ke aane ka intezar hai. Voting abhi shuru nahi hui.'; }
+    else if (ended()) {
+      $('tlabel').textContent = 'Voting khatam'; $('t').textContent = '00:00:00'; showResults();
+      const tie = A === B, w = A > B ? 'a' : 'b';
+      if (tie) $('msg').textContent = 'Muqabla barabar raha!';
+      else {
+        $('msg').textContent = 'Winner: ' + (w === 'a' ? room.name_a : room.name_b) + '!';
+        const el = $(w === 'a' ? 'ca' : 'cb'); el.classList.add('win');
+        el.insertAdjacentHTML('afterbegin', '<div class="crown">WINNER</div>');
+      }
+    }
+    else if (mine) { $('msg').textContent = 'Aap ka vote ho chuka hai. Shukriya!'; }
+    else { $('msg').textContent = ''; }
+  }
+
+  // ---------- Room ke malik ka panel: agla muqabla ----------
+  const qo = q.get('o');
+  if (qo) { try { localStorage.setItem('muqabla_owner_' + rid, qo); } catch {} }
+  let OWN = null;
+  try { OWN = localStorage.getItem('muqabla_owner_' + rid); } catch {}
+
+  const MSG = 'Muqabla par aa kar vote karo aur apna muqabla banao!';
+  // [key, naam, share-link banane wala (null = link copy hoga), site]
+  const PLATS = [
+    ['whatsapp',  'WhatsApp',    u => 'https://wa.me/?text=' + encodeURIComponent(MSG + ' ' + u)],
+    ['facebook',  'Facebook',    u => 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(u)],
+    ['x',         'X (Twitter)', u => 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(MSG) + '&url=' + encodeURIComponent(u)],
+    ['messenger', 'Messenger',   u => 'fb-messenger://share/?link=' + encodeURIComponent(u)],
+    ['tiktok',    'TikTok',      null, 'https://www.tiktok.com/'],
+    ['instagram', 'Instagram',   null, 'https://www.instagram.com/'],
+    ['youtube',   'YouTube',     null, 'https://www.youtube.com/'],
+    ['emo',       'Emo',         null, null]
+  ];
+
+  function h(tag, text, cls){
+    const e = document.createElement(tag);
+    if (text) e.textContent = text;
+    if (cls) e.className = cls;
+    return e;
+  }
+
+  let ownerShown = '';
+  async function ownerPanel(){
+    if (!OWN || !room) return;
+    const box = $('owner');
+    const mode = !room.name_b ? 'wait' : (ended() ? 'share' : '');
+    if (!mode) { box.classList.add('hide'); ownerShown = ''; return; }
+    if (mode === ownerShown) return;
+    ownerShown = mode;
+    box.innerHTML = '';
+
+    if (mode === 'wait') {
+      let jt = null;
+      try { jt = localStorage.getItem('muqabla_join_' + rid); } catch {}
+      if (!jt) { box.classList.add('hide'); return; }
+      const base = location.origin + location.pathname.replace(/room\.html$/, '');
+      box.append(h('h2', 'Muqabil ko bulao'),
+                 h('p', 'Ye invite link apne naye muqabil ko bhejein:', 'msg'),
+                 h('div', base + 'join.html?r=' + rid + '&t=' + jt, 'link'));
+      box.classList.remove('hide');
+      return;
+    }
+
+    // mode === 'share'
+    box.append(h('h2', 'Agla muqabla unlock karo'),
+               h('p', 'Naya muqabil bulane ke liye website ka link kam az kam 3 alag platform par share karein.', 'msg'));
+    const prog = h('div', '', 'msg'), grid = h('div', '', 'plats');
+    const next = h('button', 'Naya muqabil bulao', 'btn hide');
+    let n = 0;
+    try { const r = await sb.rpc('share_count', { p_room: rid, p_owner: OWN }); if (r.data > 0) n = r.data; } catch {}
+    const upd = () => { prog.textContent = n >= 3 ? 'Unlock ho gaya!' : n + '/3 platform mukammal'; next.classList.toggle('hide', n < 3); };
+
+    PLATS.forEach(([key, label, mk, site]) => {
+      const b = h('button', label, 'btn alt');
+      b.addEventListener('click', async () => {
+        const u = location.origin + '/';
+        if (mk) window.open(mk(u), '_blank');
+        else {
+          if (site) window.open(site, '_blank');
+          try { await navigator.clipboard.writeText(u); } catch {}
+          prog.textContent = 'Link copy ho gaya. Wahan paste karke share karein.';
+        }
+        const r = await sb.rpc('record_share', { p_room: rid, p_owner: OWN, p_platform: key });
+        if (!r.error && r.data >= 0) { n = r.data; b.textContent = label + ' \u2713'; setTimeout(upd, 1800); }
+      });
+      grid.append(b);
+    });
+
+    next.addEventListener('click', async () => {
+      next.disabled = true;
+      const r = await sb.rpc('next_round', { p_room: rid, p_owner: OWN });
+      if (r.error || !r.data) { prog.textContent = 'Abhi unlock nahi ho saka. Dobara try karein.'; next.disabled = false; return; }
+      try { localStorage.setItem('muqabla_join_' + rid, r.data); } catch {}
+      location.reload();
+    });
+
+    box.append(prog, grid, next);
+    box.classList.remove('hide');
+    upd();
+  }
+
+  // ---------- Natija: statistics ----------
+  let statsDone = false;
+  async function showResults(){
+    $('results').classList.remove('hide');
+    if (statsDone) return;
+    statsDone = true;
+    await loadCounts();
+    const ia = sum('a', 'invite'), ib = sum('b', 'invite'), da = sum('a', 'direct'), db = sum('b', 'direct');
+    $('hA').textContent = room.name_a; $('hB').textContent = room.name_b;
+    const row = (label, x, y) => {
+      const tr = document.createElement('tr');
+      [label, x, y].forEach(v => { const td = document.createElement('td'); td.textContent = v; tr.appendChild(td); });
+      return tr;
+    };
+    $('stats').append(
+      row('Invite link se', ia, ib),
+      row('Direct link se', da, db),
+      row('Kul', ia + da, ib + db)
+    );
+  }
+
+  // ---------- Winner ki image ----------
+  function loadImg(src){
+    return new Promise((res, rej) => {
+      const i = new Image(); i.crossOrigin = 'anonymous';
+      i.onload = () => res(i); i.onerror = rej; i.src = src;
+    });
+  }
+  function rr(x, px, py, w, h, r){
+    x.beginPath(); x.moveTo(px + r, py);
+    x.arcTo(px + w, py, px + w, py + h, r); x.arcTo(px + w, py + h, px, py + h, r);
+    x.arcTo(px, py + h, px, py, r); x.arcTo(px, py, px + w, py, r); x.closePath();
+  }
+  function cover(x, img, px, py, s, r){
+    x.save(); rr(x, px, py, s, s, r); x.clip();
+    const k = Math.max(s / img.width, s / img.height), w = img.width * k, h = img.height * k;
+    x.drawImage(img, px + (s - w) / 2, py + (s - h) / 2, w, h);
+    x.restore();
+  }
+  async function makeImage(){
+    const W = 1080, H = 1350, cv = document.createElement('canvas');
+    cv.width = W; cv.height = H;
+    const x = cv.getContext('2d'), F = 'system-ui, -apple-system, Segoe UI, Arial, sans-serif';
+    const g = x.createLinearGradient(0, 0, W, H);
+    g.addColorStop(0, '#2a1856'); g.addColorStop(1, '#0f0b1e');
+    x.fillStyle = g; x.fillRect(0, 0, W, H);
+
+    x.textAlign = 'center'; x.fillStyle = '#ffd166'; x.font = '800 64px ' + F;
+    x.fillText('MUQABLA', W / 2, 110);
+
+    const tie = A === B, w = A > B ? 'a' : 'b';
+    x.fillStyle = '#f5f3ff'; x.font = '700 54px ' + F;
+    x.fillText(tie ? 'Muqabla barabar raha!' : 'WINNER: ' + (w === 'a' ? room.name_a : room.name_b), W / 2, 215);
+
+    const S = 460, y = 300, xa = 50, xb = 570;
+    const [ia, ib] = await Promise.all([loadImg(room.photo_a), loadImg(room.photo_b)]);
+    cover(x, ia, xa, y, S, 36); cover(x, ib, xb, y, S, 36);
+
+    const border = (px, col, lw) => { x.lineWidth = lw; x.strokeStyle = col; rr(x, px, y, S, S, 36); x.stroke(); };
+    border(xa, tie || w === 'a' ? '#ffd166' : '#ff4d6d', tie || w === 'a' ? 14 : 6);
+    border(xb, tie || w === 'b' ? '#ffd166' : '#3a86ff', tie || w === 'b' ? 14 : 6);
+
+    x.fillStyle = '#ffd166'; x.beginPath(); x.arc(W / 2, y + S / 2, 52, 0, Math.PI * 2); x.fill();
+    x.fillStyle = '#222'; x.font = '900 44px ' + F; x.fillText('VS', W / 2, y + S / 2 + 15);
+
+    x.fillStyle = '#f5f3ff'; x.font = '700 44px ' + F;
+    x.fillText(room.name_a, xa + S / 2, y + S + 70); x.fillText(room.name_b, xb + S / 2, y + S + 70);
+    x.fillStyle = '#ffd166'; x.font = '800 78px ' + F;
+    x.fillText(A, xa + S / 2, y + S + 165); x.fillText(B, xb + S / 2, y + S + 165);
+    x.fillStyle = '#a49ec7'; x.font = '500 30px ' + F;
+    x.fillText('votes', xa + S / 2, y + S + 210); x.fillText('votes', xb + S / 2, y + S + 210);
+
+    // Website ka naam (promotion)
+    x.fillStyle = '#f5f3ff'; x.font = '700 40px ' + F;
+    x.fillText('Aap bhi muqabla karo!', W / 2, 1230);
+    x.fillStyle = '#ffd166'; x.font = '800 48px ' + F;
+    x.fillText(location.host, W / 2, 1300);
+    return cv;
+  }
+
+  $('dl').addEventListener('click', async () => {
+    $('dl').disabled = true; $('dlmsg').textContent = 'Image ban rahi hai...';
+    try {
+      const cv = await makeImage();
+      cv.toBlob(b => {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(b); a.download = 'muqabla-result.png';
+        document.body.appendChild(a); a.click(); a.remove();
+        $('dlmsg').textContent = 'Image download ho gayi!'; $('dl').disabled = false;
+      }, 'image/png');
+    } catch {
+      $('dlmsg').textContent = 'Image nahi ban saki. Dobara try karein.'; $('dl').disabled = false;
+    }
+  });
+
+  $('cp').addEventListener('click', () => {
+    navigator.clipboard.writeText(location.origin + location.pathname + '?r=' + rid);
+    $('dlmsg').textContent = 'Link copy ho gaya!';
+  });
+
+  async function vote(choice){
+    if (!started() || ended() || myVote()) return;
+    $('bva').disabled = $('bvb').disabled = true;
+    const r = await sb.from('votes').insert({ room_id: rid, round: room.round, voter_id: voterId(), choice, source });
+    // Error 23505 ka matlab: is browser se pehle vote ho chuka hai
+    if (r.error && r.error.code !== '23505') {
+      // Server ke apne paigham (misal: "Voting khatam ho chuki hai.") seedha dikhate hain
+      $('msg').textContent = r.error.message || 'Vote nahi ho saka. Dobara try karein.';
+      if (/khatam|purana/.test(r.error.message || '')) refreshVotes(); else showState();
+      return;
+    }
+    saveVote(choice);
+    refreshVotes();
+  }
+
+  function tick(){
+    if (!started()) { $('t').textContent = '--:--:--'; return; }
+    const left = Math.max(0, Math.floor((new Date(room.ends_at) - new Date()) / 1000));
+    if (left === 0 && !tick.done) { tick.done = true; refreshVotes(); }
+    const h = String(Math.floor(left / 3600)).padStart(2, '0'),
+          m = String(Math.floor(left % 3600 / 60)).padStart(2, '0'),
+          s = String(left % 60).padStart(2, '0');
+    $('t').textContent = h + ':' + m + ':' + s;
+  }
+
+  function addComment(c, top){
+    const d = document.createElement('div'); d.className = 'cm';
+    d.innerHTML = '<b></b> <small></small><div></div>';
+    d.querySelector('b').textContent = c.author;
+    d.querySelector('small').textContent = new Date(c.created_at).toLocaleString('en-GB', { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short' });
+    d.querySelector('div').textContent = c.body;
+    top ? $('cl').prepend(d) : $('cl').append(d);
+  }
+
+  async function loadComments(){
+    const r = await sb.from('comments').select('id,author,body,created_at').eq('room_id', rid).eq('round', room.round).order('created_at', { ascending: false }).limit(100);
+    $('cl').innerHTML = '';
+    (r.data || []).forEach(c => addComment(c, false));
+  }
+
+  $('cbtn').addEventListener('click', async () => {
+    const author = $('cn').value.trim() || 'Mehman', body = $('ct').value.trim();
+    if (!body) return;
+    $('cbtn').disabled = true;
+    const r = await sb.from('comments').insert({ room_id: rid, round: room.round, author, body }).select('id,author,body,created_at').single();
+    $('cbtn').disabled = false;
+    if (!r.error) { addComment(r.data, true); $('ct').value = ''; }
+    else alert(r.error.message || 'Comment nahi ja saka. Dobara try karein.');
+  });
+
+  $('bva').addEventListener('click', () => vote('a'));
+  $('bvb').addEventListener('click', () => vote('b'));
+
+  (async () => {
+    if (!rid) { $('fatal').innerHTML = 'Ye link adhoora hai. <a href="index.html" style="color:#ffd166">Front page par jayein</a>'; return; }
+    const r = await sb.from('rooms_public').select('*').eq('id', rid).maybeSingle();
+    if (r.error) { $('fatal').textContent = 'Internet ya server ka masla hai. Page dobara refresh karein.'; return; }
+    if (!r.data) { $('fatal').textContent = 'Ye room nahi mila. Link dobara check karein.'; return; }
+    $('fatal').textContent = '';
+    room = r.data;
+    $('title').textContent = room.name_a + ' VS ' + (room.name_b || '?');
+    document.title = room.name_a + ' VS ' + (room.name_b || '?') + ' - Muqabla';
+    $('pa_img').src = room.photo_a; $('na').textContent = room.name_a;
+    if (room.name_b) {
+      $('pb_img').src = room.photo_b; $('pb_img').style.display = 'block';
+      $('pb_ph').style.display = 'none'; $('nb').textContent = room.name_b;
+    } else { $('nb').textContent = 'Muqabil ka intezar'; }
+    $('main').classList.remove('hide');
+    await refreshVotes(); loadComments();
+    tick(); setInterval(tick, 1000);
+    setInterval(() => { if (!ended()) refreshVotes(); }, 10000);
+    setInterval(loadComments, 20000);
+  })();
+</script>
+</body>
+</html>
