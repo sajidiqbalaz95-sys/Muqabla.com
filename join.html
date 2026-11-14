@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ur">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Muqabla Qubool Karo - Muqabla</title>
+<!--SEO-->
+<meta name="description" content="Aap ko muqabale ki dawat mili hai. Apni photo lagao aur muqabla shuru karo.">
+<meta name="theme-color" content="#0f0b1e">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta property="og:site_name" content="Muqabla">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Muqabla Qubool Karo - Muqabla">
+<meta property="og:description" content="Aap ko muqabale ki dawat mili hai. Apni photo lagao aur muqabla shuru karo.">
+<meta property="og:image" content="https://muqabla-vote.pages.dev/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<!--/SEO-->
+<meta name="robots" content="noindex">
+<style>
+  :root{--bg:#0f0b1e;--card:#1a1433;--text:#f5f3ff;--muted:#a49ec7;--a:#ff4d6d;--b:#3a86ff;--gold:#ffd166}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:radial-gradient(circle at 20% 0%,#2a1856 0,var(--bg) 55%) fixed;color:var(--text);min-height:100vh}
+  .wrap{max-width:480px;margin:0 auto;padding:18px 16px 48px}
+  a.logo{display:block;font-size:1.5rem;font-weight:800;color:var(--text);text-decoration:none;margin-bottom:18px}
+  .logo span{color:var(--gold)}
+  .box{background:var(--card);border-radius:22px;padding:22px}
+  h1{font-size:1.5rem;margin-bottom:6px}
+  p.s{color:var(--muted);margin-bottom:18px}
+  .foe{display:flex;align-items:center;gap:12px;background:#120d26;border-radius:16px;padding:10px;margin-bottom:8px}
+  .foe img{width:64px;height:64px;border-radius:12px;object-fit:cover}
+  label{display:block;margin:14px 0 6px;font-weight:600}
+  input[type=text]{width:100%;padding:13px;border-radius:12px;border:1px solid #2e2557;background:#120d26;color:var(--text);font-size:1rem}
+  .pick{display:grid;place-items:center;width:160px;aspect-ratio:1/1;margin:0 auto;border-radius:18px;background:#2a2150;border:2px dashed #4a3d85;cursor:pointer;overflow:hidden;color:var(--muted)}
+  .pick img{width:100%;height:100%;object-fit:cover}
+  input[type=file]{display:none}
+  .btn{width:100%;margin-top:20px;border:0;cursor:pointer;font-weight:700;border-radius:999px;padding:14px;font-size:1.05rem;color:#fff;background:linear-gradient(90deg,var(--a),var(--b))}
+  .btn:disabled{opacity:.5;cursor:wait}
+  .err{color:#ff8fa3;margin-top:12px;min-height:1.2em}
+  .hide{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="logo" href="index.html">Muq<span>abla</span></a>
+  <div class="box" id="box">
+    <h1>Aap ko muqabale ki dawat hai!</h1>
+    <p class="s" id="sub">Room dhoond rahe hain...</p>
+    <div class="foe hide" id="foe"><img id="fimg" alt=""><b id="fname"></b></div>
+
+    <div id="form" class="hide">
+      <label>Aap ki photo</label>
+      <label class="pick" id="pick" for="file">Photo chunein</label>
+      <input type="file" id="file" accept="image/*">
+      <label for="nm">Aap ka naam</label>
+      <input type="text" id="nm" maxlength="20" placeholder="Misal: Ahmed">
+      <div class="err" id="err"></div>
+      <button class="btn" id="go">Muqabla Shuru Karo</button>
+    </div>
+    <div class="err" id="fatal"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script>
+  const $ = id => document.getElementById(id);
+  const sb = supabase.createClient(MUQABLA.SUPABASE_URL, MUQABLA.SUPABASE_ANON_KEY);
+  const q = new URLSearchParams(location.search);
+  const rid = q.get('r'), tok = q.get('t');
+  let blob = null, rd = 1;
+
+  function shrink(file){
+    return new Promise((res, rej) => {
+      const img = new Image();
+      img.onload = () => {
+        const s = Math.min(1, 600 / Math.max(img.width, img.height));
+        const c = document.createElement('canvas');
+        c.width = img.width * s; c.height = img.height * s;
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        c.toBlob(b => b ? res(b) : rej(), 'image/jpeg', 0.85);
+      };
+      img.onerror = rej;
+      img.src = URL.createObjectURL(file);
+    });
+  }
+
+  (async () => {
+    if (!rid || !tok) { $('sub').textContent = ''; $('fatal').textContent = 'Ye link adhoora hai. Dobara sahi link maangein.'; return; }
+    const { data, error } = await sb.from('rooms_public').select('*').eq('id', rid).maybeSingle();
+    if (error || !data) { $('sub').textContent = ''; $('fatal').textContent = 'Ye room nahi mila.'; return; }
+    if (data.name_b) { $('sub').textContent = ''; $('fatal').textContent = 'Is room mein muqabil pehle hi aa chuka hai.'; return; }
+    rd = data.round || 1;
+    $('sub').textContent = 'Aap ka muqabil:';
+    $('fimg').src = data.photo_a; $('fname').textContent = data.name_a;
+    $('foe').classList.remove('hide'); $('form').classList.remove('hide');
+  })();
+
+  $('file').addEventListener('change', async e => {
+    const f = e.target.files[0]; if (!f) return;
+    try {
+      blob = await shrink(f);
+      $('pick').innerHTML = '<img src="' + URL.createObjectURL(blob) + '">';
+      $('err').textContent = '';
+    } catch { $('err').textContent = 'Ye photo khul nahi saki. Dusri try karein.'; }
+  });
+
+  $('go').addEventListener('click', async () => {
+    const name = $('nm').value.trim();
+    if (!blob) return $('err').textContent = 'Pehle photo chunein.';
+    if (!name) return $('err').textContent = 'Apna naam likhein.';
+    $('go').disabled = true; $('go').textContent = 'Ho raha hai...';
+    try {
+      const path = rid + '/b' + rd + '.jpg';
+      let r = await sb.storage.from('photos').upload(path, blob, { contentType: 'image/jpeg' });
+      if (r.error) throw r.error;
+      const url = sb.storage.from('photos').getPublicUrl(path).data.publicUrl;
+      r = await sb.rpc('join_room', { p_room: rid, p_token: tok, p_name: name, p_photo: url });
+      if (r.error) throw r.error;
+      if (!r.data) throw new Error('Link ghalat hai ya room pehle hi mukammal ho chuka hai.');
+      location.href = 'room.html?r=' + rid;
+    } catch (e) {
+      $('err').textContent = 'Masla aaya: ' + (e.message || 'dobara try karein');
+      $('go').disabled = false; $('go').textContent = 'Muqabla Shuru Karo';
+    }
+  });
+</script>
+</body>
+</html>
