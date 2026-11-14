@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ur">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Room Banao - Muqabla</title>
+<!--SEO-->
+<meta name="description" content="Apni photo lagao, muqabil ko bulao aur vote lo. Free, koi account nahi.">
+<meta name="theme-color" content="#0f0b1e">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta property="og:site_name" content="Muqabla">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Apna Room Banao - Muqabla">
+<meta property="og:description" content="Apni photo lagao, muqabil ko bulao aur vote lo. Free, koi account nahi.">
+<meta property="og:image" content="https://muqabla-vote.pages.dev/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<!--/SEO-->
+<meta name="robots" content="noindex">
+<style>
+  :root{--bg:#0f0b1e;--card:#1a1433;--text:#f5f3ff;--muted:#a49ec7;--a:#ff4d6d;--b:#3a86ff;--gold:#ffd166}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:radial-gradient(circle at 20% 0%,#2a1856 0,var(--bg) 55%) fixed;color:var(--text);min-height:100vh}
+  .wrap{max-width:480px;margin:0 auto;padding:18px 16px 48px}
+  a.logo{display:block;font-size:1.5rem;font-weight:800;color:var(--text);text-decoration:none;margin-bottom:18px}
+  .logo span{color:var(--gold)}
+  .box{background:var(--card);border-radius:22px;padding:22px}
+  h1{font-size:1.5rem;margin-bottom:6px}
+  p.s{color:var(--muted);margin-bottom:18px}
+  label{display:block;margin:14px 0 6px;font-weight:600}
+  input[type=text]{width:100%;padding:13px;border-radius:12px;border:1px solid #2e2557;background:#120d26;color:var(--text);font-size:1rem}
+  .pick{display:grid;place-items:center;width:160px;aspect-ratio:1/1;margin:0 auto;border-radius:18px;background:#2a2150;border:2px dashed #4a3d85;cursor:pointer;overflow:hidden;text-align:center;color:var(--muted)}
+  .pick img{width:100%;height:100%;object-fit:cover}
+  input[type=file]{display:none}
+  .btn{width:100%;margin-top:20px;border:0;cursor:pointer;font-weight:700;border-radius:999px;padding:14px;font-size:1.05rem;color:#fff;background:linear-gradient(90deg,var(--a),var(--b))}
+  .btn:disabled{opacity:.5;cursor:wait}
+  .err{color:#ff8fa3;margin-top:12px;min-height:1.2em}
+  .link{background:#120d26;border:1px solid #2e2557;border-radius:12px;padding:12px;margin:6px 0 4px;word-break:break-all;font-size:.9rem}
+  .mini{background:#2a2150;border:0;color:var(--text);border-radius:999px;padding:8px 16px;cursor:pointer;font-weight:600;margin-bottom:10px}
+  .hide{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="logo" href="index.html">Muq<span>abla</span></a>
+
+  <div class="box" id="formBox">
+    <h1>Apna Room Banao</h1>
+    <p class="s">Apna naam aur photo dein. Phir muqabil ko invite link bhejein.</p>
+
+    <label>Aap ki photo</label>
+    <label class="pick" id="pick" for="file">Photo chunein</label>
+    <input type="file" id="file" accept="image/*">
+
+    <label for="nm">Aap ka naam</label>
+    <input type="text" id="nm" maxlength="20" placeholder="Misal: Ali">
+
+    <div class="err" id="err"></div>
+    <button class="btn" id="go">Room Banao</button>
+  </div>
+
+  <div class="box hide" id="doneBox">
+    <h1>Room ban gaya!</h1>
+    <p class="s">Ye teen link save kar lein.</p>
+
+    <label>1. Muqabil ko bhejein (invite link)</label>
+    <div class="link" id="l1"></div>
+    <button class="mini" data-c="l1">Copy</button>
+
+    <label>2. Vote lene ke liye share karein</label>
+    <div class="link" id="l2"></div>
+    <button class="mini" data-c="l2">Copy</button>
+
+    <label>3. Aap ka apna link (kisi ko mat dena)</label>
+    <div class="link" id="l3"></div>
+    <button class="mini" data-c="l3">Copy</button>
+    <p class="s">Is link se aap kisi bhi device par apna room sambhal sakte hain aur agla muqabla bula sakte hain.</p>
+
+    <p class="s" style="margin-top:14px">24 ghante ka timer tab shuru hoga jab muqabil apni photo daal dega.</p>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script>
+  const $ = id => document.getElementById(id);
+  const sb = supabase.createClient(MUQABLA.SUPABASE_URL, MUQABLA.SUPABASE_ANON_KEY);
+  let blob = null;
+
+  function rand(n){
+    const c='abcdefghjkmnpqrstuvwxyz23456789', a=new Uint8Array(n);
+    crypto.getRandomValues(a);
+    return Array.from(a, x => c[x % c.length]).join('');
+  }
+
+  // Photo ko chhota kar dete hain (600px, JPEG) taake free storage jaldi na bhare.
+  function shrink(file){
+    return new Promise((res, rej) => {
+      const img = new Image();
+      img.onload = () => {
+        const s = Math.min(1, 600 / Math.max(img.width, img.height));
+        const c = document.createElement('canvas');
+        c.width = img.width * s; c.height = img.height * s;
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        c.toBlob(b => b ? res(b) : rej(), 'image/jpeg', 0.85);
+      };
+      img.onerror = rej;
+      img.src = URL.createObjectURL(file);
+    });
+  }
+
+  $('file').addEventListener('change', async e => {
+    const f = e.target.files[0]; if (!f) return;
+    try {
+      blob = await shrink(f);
+      $('pick').innerHTML = '<img src="' + URL.createObjectURL(blob) + '">';
+      $('err').textContent = '';
+    } catch { $('err').textContent = 'Ye photo khul nahi saki. Dusri try karein.'; }
+  });
+
+  $('go').addEventListener('click', async () => {
+    const name = $('nm').value.trim();
+    if (!blob) return $('err').textContent = 'Pehle photo chunein.';
+    if (!name) return $('err').textContent = 'Apna naam likhein.';
+    $('go').disabled = true; $('go').textContent = 'Ban raha hai...';
+    try {
+      const id = rand(8), token = rand(16), owner = rand(24), path = id + '/a.jpg';
+      let r = await sb.storage.from('photos').upload(path, blob, { contentType: 'image/jpeg' });
+      if (r.error) throw r.error;
+      const url = sb.storage.from('photos').getPublicUrl(path).data.publicUrl;
+      r = await sb.from('rooms').insert({ id, name_a: name, photo_a: url, join_token: token, owner_token: owner });
+      if (r.error) throw r.error;
+
+      const base = location.origin + location.pathname.replace(/[^/]*$/, '');
+      $('l1').textContent = base + 'join.html?r=' + id + '&t=' + token;
+      $('l2').textContent = base + 'room.html?r=' + id + '&ref=invite';
+      $('l3').textContent = base + 'room.html?r=' + id + '&o=' + owner;
+      try {
+        localStorage.setItem('muqabla_owner_' + id, owner);
+        localStorage.setItem('muqabla_join_' + id, token);
+      } catch {}
+      $('formBox').classList.add('hide'); $('doneBox').classList.remove('hide');
+    } catch (e) {
+      $('err').textContent = 'Masla aaya: ' + (e.message || 'dobara try karein');
+      $('go').disabled = false; $('go').textContent = 'Room Banao';
+    }
+  });
+
+  document.querySelectorAll('.mini').forEach(b => b.addEventListener('click', () => {
+    navigator.clipboard.writeText($(b.dataset.c).textContent);
+    b.textContent = 'Copy ho gaya!';
+    setTimeout(() => b.textContent = 'Copy', 1500);
+  }));
+</script>
+</body>
+</html>
